@@ -4,12 +4,6 @@
 #include <stdio.h>
 int showToken(char *);
 
-/*
-letterORdigit   ([a-zA-Z0-9]*)
-  ID              ([a-zA-Z]+[a-zA-Z0-9]*)
-  IDD             ([a-zA-Z][a-zA-Z0-9]*)
-  letters         ([a-zA-Z]+)
-  */
 %}
 
 %option yylineno
@@ -17,17 +11,27 @@ letterORdigit   ([a-zA-Z0-9]*)
 digit           ([0-9])
 letter          ([a-zA-Z])
 whitespace      ([\t\n ])
-assign          (=)
-lparen          (\()
-rparen          (\))
 char            ([a-zA-Z0-9])
+num             ([0]|([1-9]+[0-9]*))
+
 
 %%
-(void)                      showToken("number");
-{digit}+                    showToken("number");
-{letter}{char}*             printf("%d %s %s", yyleng, name, yytext); return ID;
-{whitespace}                ;
-.                           printf("Lex doesn't know what that is!\n");
+b                                       printf("%d %s %s\n", yyleng, "B", yytext); return B;
+;                                       printf("%d %s %s\n", yyleng, "SC", yytext); return SC;
+void                                    printf("%d %s %s\n", yyleng, "VOID", yytext); return VOID;
+=                                       printf("%d %s %s\n", yyleng, "ASSIGN", yytext); return ASSIGN;
+\(                                      printf("%d %s %s\n", yyleng, "LPAREN", yytext); return LPAREN;
+\)                                      printf("%d %s %s\n", yyleng, "RPAREN", yytext); return RPAREN;
+{num}                                   printf("%d %s %s\n", yyleng, "NUM", yytext); return NUM;
+{letter}{char}*                         printf("%d %s %s\n", yyleng, "ID", yytext); return ID;
+\+|\-|\*|\/	                            return BINOP;
+>|<|<=|>=|==|!=                         return RELOP;
+\"([^\n\r\"\\]|\\[rnt"\\])+\"           printf("%d %s %s\n", yyleng, "STRING", yytext); return STRING;
+\"[^\"]*                                printf("UNCLOSEDERROR\n");
+[\r | \x0d | \x0a]+                     ;
+\/\/[^\r\n]*[ \r|\n|\r\n]?              ;
+{whitespace}                            ;
+.                                       printf("Lex doesn't know what that is!\n");
 %%
 
 
@@ -40,7 +44,7 @@ int showToken(char * name){
 
 int showTokenVoid(char * name){
     /*<line number> <token name> <value>*/
-    printf("%d %s %s", yyleng, name, yytext);
+    printf("%d %s %s\n", yyleng, name, yytext);
     return VOID;
 }
 
