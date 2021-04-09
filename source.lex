@@ -3,6 +3,13 @@
 #include "tokens.hpp"
 #include <stdio.h>
 int showToken(char *);
+
+/*
+letterORdigit   ([a-zA-Z0-9]*)
+  ID              ([a-zA-Z]+[a-zA-Z0-9]*)
+  IDD             ([a-zA-Z][a-zA-Z0-9]*)
+  letters         ([a-zA-Z]+)
+  */
 %}
 
 %option yylineno
@@ -10,24 +17,16 @@ int showToken(char *);
 digit           ([0-9])
 letter          ([a-zA-Z])
 whitespace      ([\t\n ])
-VOID            (void)
-BYTE            (byte)
-BOOL            (bool)
-AND             (and)
-TRUE 2           (true)
-FALSE           (false)
-RETURN          (return)
-IF              (if)
-ELSE            (else)
-WHILE           (while)
+assign          (=)
+lparen          (\()
+rparen          (\))
+char            ([a-zA-Z0-9])
 
 %%
+(void)                      showToken("number");
 {digit}+                    showToken("number");
-{letter}+@{letter}+\.com    showToken("email address");
+{letter}{char}*             printf("%d %s %s", yyleng, name, yytext); return ID;
 {whitespace}                ;
-{VOID}                      showToken("void");
-{BOOL}                      showToken("bool");
-{BYTE}                      showToken("byte");
 .                           printf("Lex doesn't know what that is!\n");
 %%
 
@@ -39,10 +38,10 @@ int showToken(char * name){
     return 5;
 }
 
-int showToken2(char * name){
+int showTokenVoid(char * name){
     /*<line number> <token name> <value>*/
     printf("%d %s %s", yyleng, name, yytext);
-    return 5;
+    return VOID;
 }
 
 
