@@ -4,14 +4,11 @@
 
 void showtoken(char *);
 void parseString(int len);
-char numChar(char a, char b);
+char numChar(char a, char b, int * err);
 
 
 int main()
 {
-
-
-
     int token;
     while(token = yylex()) {
 
@@ -150,12 +147,12 @@ int main()
                 break;
 
             case -1:
-                printf("Error unclosed string \n");
+                printf("Error unclosed string\n");
                 exit(0);
                 break;
 
             case -2:
-                printf("%s %s %s", "Error:", yytext, "\n");
+                printf("%s %s\n", "Error:", yytext);
                 exit(0);
                 break;
 
@@ -167,13 +164,18 @@ int main()
     return 0;
 }
 
-char numChar(char a, char b)
+char numChar(char a, char b, int * err)
 {
+    *err = 0;
     int ascii_code = 0;
     char tmp[2];
     tmp[0] = a;
     tmp[1] = b;
-    ascii_code = strtol(tmp, NULL, 16);
+    ascii_code = strtol(tmp, nullptr, 16);
+    if(ascii_code > 127 || ascii_code==0)
+    {
+        *err = -1;
+    }
     return char(ascii_code);
 }
 
@@ -186,6 +188,7 @@ void parseString(int len)
     int newlen = len-2;
     int i;
     int j = 0;
+    int err;
 
     for (i = 0; i + 1 < len - 1; i++)
     {
@@ -200,28 +203,55 @@ void parseString(int len)
             if (rep == 'n') {
                 rep = '\n';
             }
-            if (rep == 'r') {
-                rep == '\r';
+            else if (rep == 'r') {
+                rep = '\r';
             }
-            if (rep == 't') {
-                rep == '\t';
+            else if (rep == 't') {
+                rep = '\t';
             }
-            if (rep == '0') {
-                rep == '\0';
+            else if (rep == '0') {
+                rep = '\0';
             }
-            if (rep == '"') {
-                rep == '\"';
+            else if (rep == '"') {
+                rep = '\"';
             }
-            if (rep == '\\') {
-                rep == '\\';
+            else if (rep == '\\') {
+                rep = '\\';
             }
 
-            if(rep == 'x')
+            else if(rep == 'x')
             {
-                final[j] = numChar(tmp[i+2], tmp[i+3]);
+                if(tmp[i+2]=='\0')
+                {
+                    printf("Error undefined escape sequence x\n");
+                    exit(0);
+                }
+
+                if(tmp[i+3]=='\0')
+                {
+                    printf("%s%c\n","Error undefined escape sequence x", tmp[i+2]);
+                    exit(0);
+                }
+                final[j] = numChar(tmp[i+2], tmp[i+3], &err);
                 ++j;
+
+                if(err == -1)
+                {
+                    printf("Error undefined escape sequence x");
+                    printf("%c%c", tmp[i+2],tmp[i+3]);
+
+                    printf("\n");
+                    exit(0);
+                    return;
+                }
                 i = i + 3 ;
                 continue;
+            }
+            else
+            {
+                printf("%s %c\n", "Error undefined escape sequence", rep);
+                exit(0);
+                return;
             }
 
             final[j] = rep;
@@ -233,9 +263,7 @@ void parseString(int len)
         j++;
     }
     final[j] = '\0';
-
-    printf("%d %s %s",yylineno, "STRING", final);
-    printf("\n");
+    printf("%d %s %s\n",yylineno, "STRING", final);
 
 }
 

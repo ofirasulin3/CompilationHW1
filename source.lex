@@ -1,51 +1,59 @@
 %{
 /* Declarations section */
 #include "tokens.hpp"
-#include <stdio.h>
-int showToken(char *);
 
 %}
 
 %option yylineno
 %option noyywrap
 digit           ([0-9])
+positive		([1-9])
 letter          ([a-zA-Z])
-whitespace      ([\t\n ])
 char            ([a-zA-Z0-9])
-num             ([0]|([1-9]+[0-9]*))
+validString 	([^\r\n\"\\]|\\[tn0rx"\\])
+string			([^\r\n\"\\]|\\[tn0rx"\\]|\\[^tn0rx"\\])
+ignore 			[\n | \r | \t | \x0a | \x0d]+
+printable 		[\x20-\x21\x23-\x7E]
 
 
 %%
-b                                       printf("%d %s %s\n", yyleng, "B", yytext); return B;
-;                                       printf("%d %s %s\n", yyleng, "SC", yytext); return SC;
-void                                    printf("%d %s %s\n", yyleng, "VOID", yytext); return VOID;
-=                                       printf("%d %s %s\n", yyleng, "ASSIGN", yytext); return ASSIGN;
-\(                                      printf("%d %s %s\n", yyleng, "LPAREN", yytext); return LPAREN;
-\)                                      printf("%d %s %s\n", yyleng, "RPAREN", yytext); return RPAREN;
-{num}                                   printf("%d %s %s\n", yyleng, "NUM", yytext); return NUM;
-{letter}{char}*                         printf("%d %s %s\n", yyleng, "ID", yytext); return ID;
-\+|\-|\*|\/	                            return BINOP;
->|<|<=|>=|==|!=                         return RELOP;
-\"([^\n\r\"\\]|\\[rnt"\\])+\"           printf("%d %s %s\n", yyleng, "STRING", yytext); return STRING;
-\"[^\"]*                                printf("UNCLOSEDERROR\n");
-[\r | \x0d | \x0a]+                     ;
-\/\/[^\r\n]*[ \r|\n|\r\n]?              ;
-{whitespace}                            ;
-.                                       printf("Lex doesn't know what that is!\n");
+void								return VOID;
+int									return INT;
+byte	   							return BYTE;
+b									return B;
+bool								return BOOL;
+and									return AND;
+or									return OR;
+not									return NOT;
+true								return TRUE;
+false								return FALSE;
+return								return RETURN;
+if									return IF;
+else								return ELSE;
+while								return WHILE;
+break								return BREAK;
+continue							return CONTINUE;
+switch								return SWITCH;
+case								return CASE;
+default							    return DEFAULT;
+\:									return COLON;
+\;     			        		    return SC;
+\,     	        				    return COMMA;
+\(									return LPAREN;
+\)									return RPAREN;
+\{									return LBRACE;
+\}									return RBRACE;
+\=									return ASSIGN;
+==|<|>|!=|>=|<=					    return RELOP;
+\+|-|\*|\/					return BINOP;
+{letter}{char}*						return ID;
+{positive}{digit}*					return NUM;
+{digit}								return NUM;
+\"{string}*\"      					return STRING;
+\"({printable})*                    return -1;
+{ignore}							{};
+(\/\/)([^\n\r\r\n])*				return COMMENT;
+.               					return -2;
 %%
-
-
-int showToken(char * name){
-    printf("Lex found token %s ", name);
-    printf("The lexeme is %s ", yytext);
-    printf("its length is %d\n", yyleng);
-    return 5;
-}
-
-int showTokenVoid(char * name){
-    /*<line number> <token name> <value>*/
-    printf("%d %s %s\n", yyleng, name, yytext);
-    return VOID;
-}
 
 
