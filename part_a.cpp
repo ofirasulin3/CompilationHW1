@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void showtoken(char *);
+void showtoken(char const *);
 void parseString(int len);
 char numChar(char a, char b, int * err);
 
@@ -267,7 +267,7 @@ void parseString(int len)
 
 }
 
-void showtoken(char * name){
+void showtoken(char const * name){
 
     /*<line number> <token name> <value>*/
     printf("%d %s %s\n", yylineno, name, yytext);
